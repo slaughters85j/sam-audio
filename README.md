@@ -16,6 +16,16 @@ SAM-Audio is a foundation model for isolating any sound in audio using text, vis
 
 SAM-Audio and the Judge model crucially rely on [Perception-Encoder Audio-Visual (PE-AV)](https://huggingface.co/facebook/pe-av-large), which you can read more about [here](https://ai.meta.com/research/publications/pushing-the-frontier-of-audiovisual-perception-with-large-scale-multimodal-correspondence-learning/)
 
+## What's Different in This Fork
+
+This fork adds a **local interactive playground** that recreates Meta's hosted SAM-Audio demo for running on your own machine:
+
+- **Frontend**: Next.js + Tailwind CSS app with waveform visualization, audio effects, and a timeline editor
+- **Backend**: FastAPI server that loads the SAM-Audio model, handles file uploads, and serves separation results
+- **Batch launchers**: `playground/dev.bat` and `playground/start.bat` for one-click startup on Windows
+
+The playground lets you upload audio/video, describe the sound you want to isolate, and hear the separated target and residual in real time — all running locally against your own GPU.
+
 ## Setup
 
 **Requirements:**
