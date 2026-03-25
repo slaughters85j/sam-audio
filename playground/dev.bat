@@ -7,8 +7,9 @@ echo.
 :: Start backend in a new window with conda env
 start "SAM Audio Backend" cmd /k "call conda activate sam-audio && cd /d %~dp0backend && python server.py"
 
-:: Wait a moment for backend to begin loading
-timeout /t 3 /nobreak >nul
+:: Wait for backend to be ready
+echo Waiting for backend to start...
+timeout /t 35 /nobreak >nul
 
 :: Start frontend dev server in a new window
 start "SAM Audio Frontend" cmd /k "cd /d %~dp0frontend && npm run dev"

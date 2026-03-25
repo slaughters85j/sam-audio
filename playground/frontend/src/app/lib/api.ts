@@ -17,17 +17,17 @@ export interface Sample {
   has_video: boolean;
 }
 
+// Call backend directly to avoid Next.js rewrite proxy body size limit (10MB)
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
 export async function uploadFile(file: File): Promise<UploadResult> {
   const form = new FormData();
   form.append("file", file);
-  const res = await fetch("/api/upload", { method: "POST", body: form });
+  const res = await fetch(`${BACKEND_URL}/api/upload`, { method: "POST", body: form });
   if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
-
-// Call backend directly for separation to avoid Next.js proxy timeout
-const BACKEND_URL =
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
 
 export async function separateAudio(
   fileId: string,
