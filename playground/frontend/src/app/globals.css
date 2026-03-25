@@ -69,3 +69,11 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: -5px;
   border: none;
 }
+
+/* Transparent track for sliders with a visual div behind them */
+.slider-no-track::-webkit-slider-runnable-track {
+  background: transparent;
+}
+.slider-no-track::-moz-range-track {
+  background: transparent;
+}

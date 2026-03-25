@@ -25,11 +25,15 @@ export async function uploadFile(file: File): Promise<UploadResult> {
   return res.json();
 }
 
+// Call backend directly for separation to avoid Next.js proxy timeout
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000";
+
 export async function separateAudio(
   fileId: string,
   description: string
 ): Promise<SeparateResult> {
-  const res = await fetch("/api/separate", {
+  const res = await fetch(`${BACKEND_URL}/api/separate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ file_id: fileId, description }),

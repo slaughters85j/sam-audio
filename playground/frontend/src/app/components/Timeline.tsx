@@ -100,13 +100,13 @@ export default function Timeline({
             <div
               key={track.trackId}
               onClick={() => onSelectTrack(track.trackId)}
-              className="flex items-center border-b last:border-b-0 cursor-pointer transition-colors"
+              className="flex items-center cursor-pointer transition-colors mx-1 my-0.5"
               style={{
-                borderColor: isSelected ? track.color : "var(--border-color)",
-                borderWidth: isSelected ? "2px" : "1px",
-                borderStyle: "solid",
-                borderLeftWidth: 0,
-                borderRightWidth: 0,
+                borderTop: isSelected ? `2px solid ${track.color}` : "1px solid var(--border-color)",
+                borderBottom: isSelected ? `2px solid ${track.color}` : "1px solid var(--border-color)",
+                borderLeft: isSelected ? `2px solid ${track.color}` : "1px solid transparent",
+                borderRight: isSelected ? `2px solid ${track.color}` : "1px solid transparent",
+                borderRadius: isSelected ? "8px" : "4px",
               }}
             >
               <MuteButton muted={track.muted} onClick={track.onToggleMute} />

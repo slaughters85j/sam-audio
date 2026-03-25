@@ -1,7 +1,13 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { separateAudio, type UploadResult } from "./lib/api";
+import { useCallback, useEffect, useState } from "react";
+import { audioUrl, separateAudio, type UploadResult } from "./lib/api";
+import {
+  addToMediaHistory,
+  captureVideoThumbnail,
+  getMediaHistory,
+  type MediaHistoryItem,
+} from "./lib/media-history";
 import UploadView from "./components/UploadView";
 import DescribeView from "./components/DescribeView";
 import ResultsView from "./components/ResultsView";
@@ -20,12 +26,42 @@ export default function Home() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [durationWarning, setDurationWarning] = useState<DurationWarning | null>(null);
+  const [mediaHistory, setMediaHistory] = useState<MediaHistoryItem[]>([]);
 
-  const proceedWithUpload = useCallback((result: UploadResult) => {
-    setUpload(result);
-    setView("describe");
-    setError(null);
+  useEffect(() => {
+    setMediaHistory(getMediaHistory());
   }, []);
+
+  const saveToHistory = useCallback(
+    async (result: UploadResult) => {
+      let thumbnail: string | null = null;
+      if (result.has_video) {
+        thumbnail = await captureVideoThumbnail(
+          audioUrl(result.file_id, "source")
+        );
+      }
+      const updated = addToMediaHistory({
+        file_id: result.file_id,
+        filename: result.filename,
+        has_video: result.has_video,
+        thumbnail,
+        duration: result.duration,
+        waveform: result.waveform,
+      });
+      setMediaHistory(updated);
+    },
+    []
+  );
+
+  const proceedWithUpload = useCallback(
+    (result: UploadResult) => {
+      setUpload(result);
+      setView("describe");
+      setError(null);
+      saveToHistory(result);
+    },
+    [saveToHistory]
+  );
 
   const handleUploaded = useCallback(
     (result: UploadResult) => {
@@ -65,6 +101,14 @@ export default function Home() {
     setError(null);
   }, []);
 
+  const handleNewMedia = useCallback((result: UploadResult) => {
+    setUpload(result);
+    setTargetWaveform([]);
+    setResidualWaveform([]);
+    setError(null);
+    setView("describe");
+  }, []);
+
   return (
     <main className="relative">
       {view === "upload" && <UploadView onUploaded={handleUploaded} />}
@@ -81,6 +125,8 @@ export default function Home() {
           targetWaveform={targetWaveform}
           residualWaveform={residualWaveform}
           onStartOver={handleStartOver}
+          onNewMedia={handleNewMedia}
+          mediaHistory={mediaHistory}
         />
       )}
 

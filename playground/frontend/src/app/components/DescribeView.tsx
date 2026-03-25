@@ -95,12 +95,12 @@ export default function DescribeView({
 
       {/* Right panel - Preview */}
       <div className="flex-1 flex flex-col bg-[var(--bg-primary)]">
-        <div className="flex-1 flex items-center justify-center p-8">
+        <div className="flex-1 flex items-center justify-center p-2 min-h-0">
           {upload.has_video ? (
             <video
-              src={audioUrl(upload.file_id, "original")}
+              src={audioUrl(upload.file_id, "source")}
               controls
-              className="max-w-full max-h-[70vh] rounded-lg"
+              className="w-full h-full object-contain rounded-lg bg-black"
             />
           ) : (
             <div className="flex flex-col items-center gap-4">

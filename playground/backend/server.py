@@ -197,12 +197,18 @@ def _run_separation(audio_path: str, description: str) -> dict:
 
 @app.get("/api/audio/{file_id}/{track}")
 async def serve_audio(file_id: str, track: str):
-    if track not in ("audio", "target", "residual", "original"):
+    if track not in ("audio", "target", "residual", "original", "source"):
         raise HTTPException(status_code=400, detail="Invalid track name")
 
     if track == "original":
         # Serve the extracted audio WAV, not the raw upload (which may be video)
         path = TEMP_DIR / file_id / "audio.wav"
+    elif track == "source":
+        # Serve the raw uploaded file (video or audio)
+        try:
+            path = get_original_path(file_id)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Original file not found")
     else:
         path = TEMP_DIR / file_id / f"{track}.wav"
 
@@ -210,8 +216,13 @@ async def serve_audio(file_id: str, track: str):
         raise HTTPException(status_code=404, detail="File not found")
 
     media_type = "audio/wav"
-    if path.suffix in (".mp4", ".webm", ".mkv", ".avi", ".mov"):
-        media_type = f"video/{path.suffix.lstrip('.')}"
+    ext = path.suffix.lower()
+    if ext == ".mp4":
+        media_type = "video/mp4"
+    elif ext == ".webm":
+        media_type = "video/webm"
+    elif ext in (".mkv", ".avi", ".mov"):
+        media_type = f"video/{ext.lstrip('.')}"
 
     return FileResponse(path, media_type=media_type)
 
