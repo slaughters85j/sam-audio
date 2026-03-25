@@ -6,3 +6,42 @@ build
 dist
 .checkpoints
 .ipynb_checkpoints
+.DS_Store
+node_modules
+.next
+
+# Temp/output files
+playground/backend/temp/
+
+# Model/checkpoint files
+*.meta
+*.sst
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+sam-audio-base/
+
+# Audio files
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.aac
+*.m4a
+*.wma
+*.aiff
+*.opus
+
+# Video files
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.wmv
+*.flv
+*.webm
+*.m4v
+*.mpeg
+*.mpg
