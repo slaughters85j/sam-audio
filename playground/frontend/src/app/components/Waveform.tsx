@@ -25,7 +25,7 @@ export default function Waveform({
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || data.length === 0) return;
+    if (!canvas || !data || data.length === 0) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;

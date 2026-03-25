@@ -147,6 +147,8 @@ async def upload_file(file: UploadFile):
 class SeparateRequest(BaseModel):
     file_id: str
     description: str
+    trim_start: Optional[float] = None
+    trim_end: Optional[float] = None
 
 
 @app.post("/api/separate")
@@ -155,13 +157,32 @@ async def separate_audio(req: SeparateRequest):
     if not audio_path.exists():
         raise HTTPException(status_code=404, detail="Audio file not found. Please upload again.")
 
+    # If trimmed, create a trimmed copy for separation and playback
+    file_dir = audio_path.parent
+    trimmed_path = file_dir / "trimmed.wav"
+    sep_path = str(audio_path)
+
+    if req.trim_start is not None and req.trim_end is not None:
+        wav, sr = torchaudio.load(str(audio_path))
+        start_sample = int(req.trim_start * sr)
+        end_sample = int(req.trim_end * sr)
+        wav = wav[:, start_sample:end_sample]
+        torchaudio.save(str(trimmed_path), wav, sr)
+        sep_path = str(trimmed_path)
+    elif trimmed_path.exists():
+        trimmed_path.unlink()
+
     async with inference_lock:
         try:
             result = await asyncio.get_event_loop().run_in_executor(
-                None, _run_separation, str(audio_path), req.description
+                None, _run_separation, sep_path, req.description
             )
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Separation failed: {e}")
+
+    # Include the waveform for the segment that was actually processed
+    sep_wav, _ = torchaudio.load(sep_path)
+    result["original_waveform"] = generate_waveform_envelope(sep_wav)
 
     return result
 
@@ -201,8 +222,9 @@ async def serve_audio(file_id: str, track: str):
         raise HTTPException(status_code=400, detail="Invalid track name")
 
     if track == "original":
-        # Serve the extracted audio WAV, not the raw upload (which may be video)
-        path = TEMP_DIR / file_id / "audio.wav"
+        # Serve trimmed segment if available, otherwise full audio
+        trimmed = TEMP_DIR / file_id / "trimmed.wav"
+        path = trimmed if trimmed.exists() else TEMP_DIR / file_id / "audio.wav"
     elif track == "source":
         # Serve the raw uploaded file (video or audio)
         try:

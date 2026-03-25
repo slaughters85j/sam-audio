@@ -10,6 +10,7 @@ export interface UploadResult {
 export interface SeparateResult {
   target_waveform: number[];
   residual_waveform: number[];
+  original_waveform: number[];
 }
 
 export interface Sample {
@@ -31,12 +32,17 @@ export async function uploadFile(file: File): Promise<UploadResult> {
 
 export async function separateAudio(
   fileId: string,
-  description: string
+  description: string,
+  trimStart?: number,
+  trimEnd?: number
 ): Promise<SeparateResult> {
+  const body: Record<string, unknown> = { file_id: fileId, description };
+  if (trimStart !== undefined) body.trim_start = trimStart;
+  if (trimEnd !== undefined) body.trim_end = trimEnd;
   const res = await fetch(`${BACKEND_URL}/api/separate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ file_id: fileId, description }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(await res.text());
   return res.json();

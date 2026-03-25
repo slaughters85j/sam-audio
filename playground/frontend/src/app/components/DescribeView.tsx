@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { audioUrl, type UploadResult } from "../lib/api";
-import Waveform from "./Waveform";
+import TrimWaveform from "./TrimWaveform";
+
+function formatTime(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  const ms = Math.floor((seconds % 1) * 10);
+  return `${m}:${s.toString().padStart(2, "0")}.${ms}`;
+}
 
 interface DescribeViewProps {
   upload: UploadResult;
-  onIsolate: (description: string) => void;
+  onIsolate: (description: string, trimStart?: number, trimEnd?: number) => void;
   isProcessing: boolean;
 }
 
@@ -16,10 +23,25 @@ export default function DescribeView({
   isProcessing,
 }: DescribeViewProps) {
   const [description, setDescription] = useState("");
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(upload.duration);
+  const isTrimmed = trimStart > 0.1 || trimEnd < upload.duration - 0.1;
+
+  const handleTrimChange = useCallback((start: number, end: number) => {
+    setTrimStart(start);
+    setTrimEnd(end);
+  }, []);
+
+  const handleResetTrim = useCallback(() => {
+    setTrimStart(0);
+    setTrimEnd(upload.duration);
+  }, [upload.duration]);
 
   const handleSubmit = () => {
     const trimmed = description.trim();
-    if (trimmed) onIsolate(trimmed);
+    if (trimmed) {
+      onIsolate(trimmed, isTrimmed ? trimStart : undefined, isTrimmed ? trimEnd : undefined);
+    }
   };
 
   return (
@@ -118,13 +140,33 @@ export default function DescribeView({
           )}
         </div>
 
-        {/* Bottom waveform */}
-        <div className="border-t border-[var(--border-color)] bg-[var(--bg-surface)] p-3">
-          <Waveform
+        {/* Bottom waveform with trim */}
+        <div className="border-t border-[var(--border-color)] bg-[var(--bg-surface)] px-3 pt-3 pb-2">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-[var(--text-secondary)]">
+              Drag handles to trim &middot;{" "}
+              <span className="text-[var(--accent-teal)]">
+                {formatTime(trimStart)} &ndash; {formatTime(trimEnd)}
+              </span>
+              {" "}({formatTime(trimEnd - trimStart)})
+            </span>
+            {isTrimmed && (
+              <button
+                onClick={handleResetTrim}
+                className="text-xs text-[var(--text-secondary)] hover:text-white transition-colors"
+              >
+                Reset
+              </button>
+            )}
+          </div>
+          <TrimWaveform
             data={upload.waveform}
             color="#00c9a7"
-            height={48}
-            label="Original sound"
+            height={64}
+            duration={upload.duration}
+            trimStart={trimStart}
+            trimEnd={trimEnd}
+            onTrimChange={handleTrimChange}
           />
         </div>
 

@@ -17,6 +17,7 @@ import Timeline from "./Timeline";
 
 interface ResultsViewProps {
   upload: UploadResult;
+  originalWaveform: number[];
   targetWaveform: number[];
   residualWaveform: number[];
   onStartOver: () => void;
@@ -26,6 +27,7 @@ interface ResultsViewProps {
 
 export default function ResultsView({
   upload,
+  originalWaveform = [],
   targetWaveform,
   residualWaveform,
   onStartOver,
@@ -135,7 +137,7 @@ export default function ResultsView({
     {
       label: "Original sound",
       trackId: "original",
-      data: upload.waveform,
+      data: originalWaveform?.length > 0 ? originalWaveform : upload.waveform,
       color: TRACK_COLORS.original,
       muted: state.tracks.original.muted,
       onToggleMute: () =>

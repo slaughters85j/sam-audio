@@ -21,6 +21,7 @@ interface DurationWarning {
 export default function Home() {
   const [view, setView] = useState<AppView>("upload");
   const [upload, setUpload] = useState<UploadResult | null>(null);
+  const [originalWaveform, setOriginalWaveform] = useState<number[]>([]);
   const [targetWaveform, setTargetWaveform] = useState<number[]>([]);
   const [residualWaveform, setResidualWaveform] = useState<number[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -75,12 +76,13 @@ export default function Home() {
   );
 
   const handleIsolate = useCallback(
-    async (description: string) => {
+    async (description: string, trimStart?: number, trimEnd?: number) => {
       if (!upload) return;
       setIsProcessing(true);
       setError(null);
       try {
-        const result = await separateAudio(upload.file_id, description);
+        const result = await separateAudio(upload.file_id, description, trimStart, trimEnd);
+        setOriginalWaveform(result.original_waveform);
         setTargetWaveform(result.target_waveform);
         setResidualWaveform(result.residual_waveform);
         setView("results");
@@ -96,6 +98,7 @@ export default function Home() {
   const handleStartOver = useCallback(() => {
     setView("upload");
     setUpload(null);
+    setOriginalWaveform([]);
     setTargetWaveform([]);
     setResidualWaveform([]);
     setError(null);
@@ -103,6 +106,7 @@ export default function Home() {
 
   const handleNewMedia = useCallback((result: UploadResult) => {
     setUpload(result);
+    setOriginalWaveform([]);
     setTargetWaveform([]);
     setResidualWaveform([]);
     setError(null);
@@ -122,6 +126,7 @@ export default function Home() {
       {view === "results" && upload && (
         <ResultsView
           upload={upload}
+          originalWaveform={originalWaveform}
           targetWaveform={targetWaveform}
           residualWaveform={residualWaveform}
           onStartOver={handleStartOver}
